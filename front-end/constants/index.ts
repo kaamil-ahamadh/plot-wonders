@@ -13,12 +13,6 @@ const ROUTES = [
     href: "/market",
     label: "Market",
   },
-  {
-    id: "search",
-    img: "search.svg",
-    href: "/search",
-    label: "Search",
-  },
 ];
 
 const FEATURES = [

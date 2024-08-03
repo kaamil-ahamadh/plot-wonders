@@ -1,0 +1,39 @@
+blockchains:
+  marketplace:
+    module: main
+    moduleArgs:
+      lib.ft4.core.accounts:
+        rate_limit:
+          max_points: 10
+          recovery_time: 5000
+          points_at_account_creation: 2
+      lib.ft4.core.auth:
+        evm_signatures_authorized_operations:
+          - register_user
+      marketplace:
+        dapp_account_signer: x"031A24E2F2731E9E9098747F561415307225F8C83C74330107F2CA2055DF08BBED"
+    test:
+      modules:
+        - test
+        - registration.test
+      moduleArgs:
+        marketplace:
+          dapp_account_signer: x"031A24E2F2731E9E9098747F561415307225F8C83C74330107F2CA2055DF08BBED"
+deployments:
+  testnet:
+    brid: x"69035D70A99A6BFAF887E415352B40589F1AD1F8D2ADF848FE995B23A8EC2127"
+    url: https://node0.projectnet.chromia.dev:7740
+    container: 09eeeeb0ab77ac94258469651e272f387c954c2e35e89eb301be7f60e528d4a3
+    chains:
+      marketplace: x"4F0E3C23A886BA0D3E831A0162CC7FB50CAE748D77232C1449113E0EBC99E004"
+compile:
+  rellVersion: 0.13.5
+database:
+  schema: schema_marketplace
+libs:
+  ft4:
+    registry: https://bitbucket.org/chromawallet/ft3-lib
+    path: rell/src/lib/ft4
+    tagOrBranch: v0.8.0r
+    rid: x"B6AE6AC82AC735BFB9E4E412FFB76BF95380E94F371F5F6A14E71A3AA7D5FEF6"
+    insecure: false

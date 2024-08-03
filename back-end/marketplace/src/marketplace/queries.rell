@@ -1,0 +1,140 @@
+
+import lib.ft4.assets.{ get_asset_balance };
+/* Queries */
+// User
+
+// Get users by username
+query get_user_name(user_id: byte_array): text {
+  return format_user(require_user(user_id));
+}
+
+// NFT Land
+
+// Get All Lands 
+query get_all_lands() {
+  // Get All Lands and return
+  return land_nft @* {} (
+        .rowid,
+        .id,
+        .owner,
+        .name,
+        .description,
+        .category,
+        .size,
+    );
+
+}
+
+// Get Land By Id
+query get_land_by_id(_id : text) {
+  // Get Land by Id or throw error
+  return require(land_nft @? {.id == _id} (
+        .rowid,
+        .id,
+        .owner,
+        .name,
+        .description,
+        .category,
+        .size,
+        
+  ), "Land %s not found".format(_id));
+}
+
+// Get Land by User
+query get_lands_by_username(_username : text) {
+  // Get Land by Id or throw error
+  return land_nft @* {.owner.username == _username} (
+        .rowid,
+        .id,
+        .owner,
+        .name,
+        .description,
+        .category,
+        .size,
+  );
+}
+
+query get_lands_by_uid(_uid : byte_array) {
+  // Get Land by Id or throw error
+  return land_nft @* {.owner.account.id == _uid} (
+        .rowid,
+        .id,
+        .owner,
+        .name,
+        .description,
+        .category,
+        .size,
+  );
+}
+
+query get_lands_with_pagination(_pointer: integer = 0, _limit : integer = 50) {
+
+    // Get Lands with Pagination
+    val lands = land_nft @* {} (
+        .rowid,
+        .id,
+        .owner,
+        .name,
+        .description,
+        .category,
+        .size,
+    ) offset _pointer limit _limit;
+
+    return lands;
+}
+
+// Get Lands Listed For Fixed Price
+query get_lands_by_fixed_price() {
+  return listed_lands_for_fixed_price @* {} (
+    .rowid,
+    .land_nft,
+    .owner,
+    .list_price,
+    .listed_at,
+    .type,
+  );
+}
+
+query get_lands_by_auction() {
+  return listed_lands_for_auction @* {} (
+    .rowid,
+    .land_nft,
+    .owner,
+    .list_price,
+    .listed_at,
+    .type,
+    .highest_bidder,
+    .highest_price,
+    .end_time
+
+  );
+}
+
+// Lands Count
+query total_lands() {
+  return land_nft @ {} (@sum 1);
+}
+
+query total_lands_by_user(_uid: byte_array) {
+  return  land_nft @ {.owner.account.id == _uid} (@sum 1);
+}
+
+// Listed Land Counts
+query total_fixed_price_lands() {
+  return listed_lands_for_fixed_price @ {} (@sum 1);
+}
+
+query total_auction_lands() {
+  return listed_lands_for_auction @ {} (@sum 1);
+}
+
+// Get Asset Balance
+query get_pgems_token_balance(_uid : byte_array) {
+  // Find User
+  val (_user,_account) = user @ {.account.id == _uid} ($, .account);
+
+  // Get Balance
+  val _balance = get_asset_balance(_account, dapp_meta.asset);
+
+  return _balance;
+}

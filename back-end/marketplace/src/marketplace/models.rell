@@ -1,0 +1,45 @@
+
+/* Entities */
+
+// User
+entity user {
+  uid : byte_array;
+  username : text;
+  account;
+  created_at : integer = op_context.last_block_time;
+  key uid, username, account;
+}
+
+// NFT
+entity land_nft {
+  key id : text;
+  mutable owner : user;
+  index owner;
+  name : text;
+  description : text;
+  category : land_category;
+  size : text = "1x1";
+}
+
+// List Lands
+entity listed_lands_for_fixed_price {
+  key land_nft;
+  index owner : user;
+  mutable list_price : big_integer;
+  listed_at : integer = op_context.last_block_time;
+  type : list_type;
+  index land_nft;
+}
+
+entity listed_lands_for_auction {
+  key land_nft;
+  index owner : user;
+  mutable list_price : big_integer;
+  listed_at : integer = op_context.last_block_time;
+  type : list_type;
+  mutable highest_price : big_integer = 0;
+  index mutable highest_bidder : user;
+  end_time : integer = 0;
+  index land_nft;
+}
+

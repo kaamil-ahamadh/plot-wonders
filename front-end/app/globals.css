@@ -1,0 +1,309 @@
+/* Importing Fonts */
+@import url("/fonts/OpenSan.ttf");
+@import url("/fonts/OpenSansExtraboldItalic.ttf");
+@import url("/fonts/Poetsen_One/PoetsenOne-Regular.ttf");
+
+/* Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  user-select: none;
+}
+
+body {
+  font-family: PoetSenOne;
+  background-color: #000d26;
+  color: #cffafe;
+}
+
+@layer base {
+  /* Remove scrollbar */
+  .remove-scrollbar::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    border-radius: 0px;
+  }
+
+  .remove-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .remove-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 0px;
+  }
+
+  .remove-scrollbar::-webkit-scrollbar-thumb:hover {
+    /* background: #1e2238; */
+    background: transparent;
+  }
+
+  /* Fonts */
+  @font-face {
+    font-family: "PoetSenOne";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/Poetsen_One/PoetsenOne-Regular.ttf) format("ttf");
+  }
+
+  @font-face {
+    font-family: "OpenSans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/OpenSans.ttf) format("ttf");
+  }
+}
+
+@layer utilities {
+  .main-container {
+    @apply flex min-h-screen flex-1 flex-col items-center px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
+  }
+
+  .max-container {
+    @apply mx-auto max-w-[1440px];
+  }
+
+  .padding-container {
+    @apply px-6 lg:px-20 3xl:px-0;
+  }
+
+  .flexCenter {
+    @apply flex items-center justify-center;
+  }
+
+  .flexBetween {
+    @apply flex items-center justify-between;
+  }
+
+  .flexStart {
+    @apply flex items-center justify-start;
+  }
+
+  .flexEnd {
+    @apply flex items-center justify-end;
+  }
+
+  /* FONTS */
+  .regular-64 {
+    @apply text-[64px] font-[400] leading-[120%];
+  }
+
+  .regular-40 {
+    @apply text-[40px] font-[400] leading-[120%];
+  }
+
+  .regular-32 {
+    @apply text-[32px] font-[400];
+  }
+
+  .regular-24 {
+    @apply text-[24px] font-[400];
+  }
+
+  .regular-20 {
+    @apply text-[20px] font-[400];
+  }
+
+  .regular-18 {
+    @apply text-[18px] font-[400];
+  }
+
+  .regular-16 {
+    @apply text-[16px] font-[400];
+  }
+
+  .regular-14 {
+    @apply text-[14px] font-[400];
+  }
+
+  .medium-14 {
+    @apply text-[14px] font-[600];
+  }
+
+  .bold-88 {
+    @apply text-[88px] font-[700] leading-[120%];
+  }
+
+  .bold-64 {
+    @apply text-[64px] font-[700] leading-[120%];
+  }
+
+  .bold-52 {
+    @apply text-[52px] font-[700] leading-[120%];
+  }
+
+  .bold-40 {
+    @apply text-[40px] font-[700] leading-[120%];
+  }
+
+  .bold-32 {
+    @apply text-[32px] font-[700] leading-[120%];
+  }
+
+  .bold-20 {
+    @apply text-[20px] font-[700];
+  }
+
+  .bold-18 {
+    @apply text-[18px] font-[700];
+  }
+
+  .bold-16 {
+    @apply text-[16px] font-[700];
+  }
+
+  /* Hero */
+  .hero-map {
+    @apply absolute right-0 top-0 h-screen w-screen bg-pattern-2 bg-cover bg-center md:-right-28 xl:-top-60;
+  }
+
+  /* User card */
+  .user-card {
+    @apply flex flex-col justify-between gap-4 max-xs:rounded-xl max-xs:bg-dark-3 max-xs:p-4 xs:flex-row xs:items-center;
+  }
+
+  .user-card_avatar {
+    @apply flex flex-1 items-start justify-start gap-3 xs:items-center;
+  }
+
+  .user-card_btn {
+    @apply h-auto min-w-[74px] rounded-lg bg-primary-500 text-[12px] text-light-1 !important;
+  }
+
+  .searchbar {
+    @apply flex gap-1 rounded-lg bg-dark-3 px-4 py-2;
+  }
+
+  .searchbar_input {
+    @apply border-none bg-dark-3 text-base-regular text-light-4 outline-none !important;
+  }
+
+  .btn {
+    @apply p-2 pr-3 text-[0.95rem];
+  }
+
+  .topbar {
+    @apply fixed top-0 z-30 flex w-full bg-[#041938] items-center justify-between px-6 py-3;
+  }
+
+  .bottombar {
+    @apply fixed bottom-0 z-10 w-full rounded-t-3xl bg-[#041938] p-4 backdrop-blur-lg sm:px-7 md:hidden;
+  }
+
+  .bottombar_container {
+    @apply flex items-center justify-between gap-1 sm:gap-5;
+  }
+
+  .bottombar_link {
+    @apply relative flex flex-col items-center gap-2 rounded-lg p-2 sm:flex-1 sm:px-2 sm:py-2.5;
+  }
+
+  .sidebar {
+    @apply sticky left-0 top-[3.5rem] z-20 flex h-[80vh] w-fit flex-col 
+    justify-center overflow-auto
+    bg-[#041938] pb-5 pt-14 max-md:hidden rounded-2xl m-2;
+  }
+
+  .sidebar_link {
+    @apply relative flex justify-start p-2 pl-4 pr-16 gap-4 rounded-lg;
+  }
+
+  .pagination {
+    @apply mt-10 flex w-full items-center justify-center gap-5;
+  }
+
+  .css-invert {
+    @apply invert-[50%] brightness-200;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #09090a;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #5c5c7b;
+    border-radius: 50px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #7878a3;
+  }
+
+  /* Basic Styles */
+  .btn {
+    @apply bg-btn-color hover:scale-105 text-white font-bold px-6 py-2 w-fit h-fit 
+    rounded-3xl sm:cursor-pointer;
+  }
+
+  .card {
+    @apply bg-[#041938] hover:ring-4 hover:scale-105 text-white text-[21px] 
+    px-6 py-2 rounded-3xl font-bold w-[300px] sm:w-[370px] h-fit mb-6;
+  }
+
+  .input {
+    @apply bg-tertiary outline-none border-[3px] border-[dodgerblue] p-3 
+    rounded-xl mb-4 w-64 sm:w-fit text-center appearance-none;
+  }
+
+  /* Card */
+  .card-container {
+    @apply flex flex-col justify-center items-center p-2;
+  }
+
+  /* Form */
+  .form-container {
+    @apply bg-[#041938] text-white text-[21px] 
+  px-6 py-2 rounded-3xl font-bold w-[350px] sm:w-[500px] h-fit mb-6;
+  }
+
+  .form-input {
+    @apply bg-[midnightblue] outline-none border-[3px] p-3 
+  rounded-xl mt-6 w-[16rem] sm:w-[19rem] text-center appearance-none;
+  }
+}
+
+/* Campaign Card */
+.campaign-details {
+  @apply p-2 flex flex-col;
+}
+
+.campaign-title {
+  @apply font-bold;
+}
+
+.card-campaign {
+  @apply bg-[#041938] text-white p-1 rounded-3xl w-[90vw]
+  h-[400px] border-4 border-solid border-[#1E90FF] mb-4 
+  relative transition-all;
+}
+
+/* Faq Item Card  */
+.faqitem-card {
+  @apply bg-secondary hover:scale-105 text-white text-[21px] break-normal
+  px-6 py-2 rounded-3xl font-bold w-full 2xl:w-[750px] h-fit mb-6;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

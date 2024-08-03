@@ -1,0 +1,209 @@
+@test module;
+
+import ^^.*;
+import lib.ft4.accounts. { single_sig_auth_descriptor };
+import lib.ft4.auth. { evm_signatures };
+import lib.ft4.core.accounts.strategies.open. { ras_open };
+import lib.ft4.external.accounts.{ add_auth_descriptor };
+import lib.ft4.external.accounts.strategies. { get_register_account_message };
+import lib.ft4.test.utils.{ ft_auth_operation_for, evm_auth_operation_for, evm_sign };
+
+val evm_address = x"1337c28e95ce85175af66353fecccd676e3d273a";
+val evm_privkey = x"18e2d37cd5b51555c52d454c22608dee5e7151384f2d7b7bc21616e2eadc3e6f";
+
+val evm_address2 = x"D1F4ed8cfCC8bF69D377d5B11f15B4A95F6d1095";
+val evm_privkey2 = x"2fb77515210d5c125fd83ba67646b42f02454a3a59220c725836213610fe6d7c";
+
+function test_evm_registration_and_nft_lands() {
+    val alice_auth_desc = single_sig_auth_descriptor(evm_address, set(["A", "T"]));
+    val alice_session_1 = rell.test.keypairs.alice;
+    val session1_auth_desc = single_sig_auth_descriptor(alice_session_1.pub, set(["PlotWondersSession"]));
+
+    val strategy_op = ras_open(alice_auth_desc, session1_auth_desc);
+    val register_op = register_user("Alice");
+
+    val message = get_register_account_message(
+        strategy_op.to_gtx_operation(),
+        register_op.to_gtx_operation()
+    );
+    val signature = evm_sign(message, evm_privkey);
+
+    // Register account using evm address 
+    rell.test.tx()
+        .op(evm_signatures([evm_address], [signature]))
+        .op(strategy_op)
+        .op(register_op)
+        .sign(alice_session_1)
+        .run();
+
+    assert_equals(user @ { } ( @sum 1 ), 1);
+
+    // Mint Land using session key
+    rell.test.tx()
+        .op(ft_auth_operation_for(alice_session_1.pub))
+        .op(mint_land("1", "My First Land is Great", land_category.STANDARD, "1x1", 500))
+        .sign(alice_session_1)
+        .run();
+
+    // Get All Lands
+    val _all_lands = get_all_lands();
+
+    // Assert
+    assert_equals(_all_lands.size(), 1);
+    assert_equals(_all_lands[0].description, "My First Land is Great");
+    assert_equals(_all_lands[0].category, land_category.STANDARD);
+    assert_equals(_all_lands[0].size, "1x1");
+    
+    // Start a new session
+    val alice_session_2 = rell.test.keypairs.bob;
+    val session_auth_desc = single_sig_auth_descriptor(alice_session_2.pub, set(["PlotWondersSession"]));
+    val add_auth_descriptor_operation = add_auth_descriptor(session_auth_desc);
+
+    // Add session token
+    rell.test.tx()
+        .op(evm_auth_operation_for(evm_privkey, add_auth_descriptor_operation))
+        .op(add_auth_descriptor_operation)
+        .sign(alice_session_2)
+        .run();
+
+    // Mint lands using session key
+    rell.test.tx()
+        .op(ft_auth_operation_for(alice_session_2.pub))
+        .op(mint_land("2","My Second Land is Good too", land_category.SOLID, "1x1", 1000))
+        .sign(alice_session_2)
+        .run();
+
+    rell.test.tx()
+        .op(ft_auth_operation_for(alice_session_2.pub))
+        .op(mint_land("3", "My Third Land is Legendary", land_category.LEGENDARY, "1x1", 2500))
+        .sign(alice_session_2)
+        .run();
+
+    assert_equals(land_nft @ { } ( @sum 1 ), 3);
+}
+
+function test_listing_land() {
+
+    // Alice Account
+    val alice_auth_desc = single_sig_auth_descriptor(evm_address, set(["A", "T"]));
+    val alice_session_1 = rell.test.keypairs.alice;
+    val session1_auth_desc = single_sig_auth_descriptor(alice_session_1.pub, set(["PlotWondersSession"]));
+
+    val strategy_op = ras_open(alice_auth_desc, session1_auth_desc);
+    val register_op = register_user("Alice");
+
+    val message = get_register_account_message(
+        strategy_op.to_gtx_operation(),
+        register_op.to_gtx_operation()
+    );
+    val signature = evm_sign(message, evm_privkey);
+
+    // Register account using evm address 
+    rell.test.tx()
+        .op(evm_signatures([evm_address], [signature]))
+        .op(strategy_op)
+        .op(register_op)
+        .sign(alice_session_1)
+        .run();
+
+    assert_equals(user @ { } ( @sum 1 ), 1);
+
+    // Bob Account
+    val bob_auth_desc = single_sig_auth_descriptor(evm_address2, set(["A", "T"]));
+    val bob_session_1 = rell.test.keypairs.bob;
+    val bob_session1_auth_desc = single_sig_auth_descriptor(bob_session_1.pub, set(["PlotWondersSession"]));
+
+    val strategy_op2 = ras_open(bob_auth_desc, bob_session1_auth_desc);
+    val register_op2 = register_user("Bob");
+
+    val message2 = get_register_account_message(
+        strategy_op2.to_gtx_operation(),
+        register_op2.to_gtx_operation()
+    );
+    val signature2 = evm_sign(message2, evm_privkey2);
+
+    // Register Bob account using evm address 
+    rell.test.tx()
+        .op(evm_signatures([evm_address2], [signature2]))
+        .op(strategy_op2)
+        .op(register_op2)
+        .sign(bob_session_1)
+        .run();
+
+    assert_equals(user @ { } ( @sum 1 ), 2);
+
+    // Mint Land using session key
+    rell.test.tx()
+        .op(ft_auth_operation_for(alice_session_1.pub))
+        .op(mint_land("4", "My First Land is Great", land_category.SUPERIOR, "1x1", 1500))
+        .sign(alice_session_1)
+        .run();
+
+    // Get All Lands
+    val _all_lands = get_all_lands();
+
+    // List Land For Fixed Price using session key
+    rell.test.tx()
+        .op(ft_auth_operation_for(alice_session_1.pub))
+        .op(list_land_for_fixed_price(_all_lands[0].id, 1))
+        .sign(alice_session_1)
+        .run();
+
+    // Get Listed Lands
+    val _listed_lands = get_lands_by_fixed_price();
+
+    // Assert
+    assert_equals(_listed_lands.size(), 1);
+
+    val total_lands = total_lands();
+
+    // List Land For Auction using session key
+    // Time --> 1577836820000, 1722574687000
+    // rell.test.tx()
+    //     .op(ft_auth_operation_for(alice_session_1.pub))
+    //     .op(list_land_for_auction(_all_lands[0].id, 1, 1722574687000))
+    //     .sign(alice_session_1)
+    //     .run();
+
+    // // Get Listed Lands
+    // val _listed_lands_for_auction = get_lands_by_auction();
+    // print(_listed_lands_for_auction);
+
+    // // Assert
+    // assert_equals(_listed_lands_for_auction.size(), 1);
+   
+   
+    // Land Sale For Fixed Price using session key
+    // Time --> 1577836820000, 1722574687000
+    // rell.test.tx()
+    //     .op(ft_auth_operation_for(bob_session_1.pub))
+    //     .op(create_land_sale_for_fixed_price(_all_lands[0].id))
+    //     .sign(bob_session_1)
+    //     .run();
+
+    // // Get Listed Lands
+    // val _listed_lands1 = get_lands_by_fixed_price();
+
+    // // Assert
+    // assert_equals(_listed_lands1.size(), 0);
+   
+   // Bidding
+    // rell.test.tx()
+    //     .op(ft_auth_operation_for(bob_session_1.pub))
+    //     .op(bid_land_for_auction(_all_lands[0].id,3))
+    //     .sign(bob_session_1)
+    //     .run();
+
+    // val _listed_lands_for_auction1 = get_lands_by_auction();
+    
+    // // Assert
+    // assert_equals(_listed_lands_for_auction1[0].highest_price, 3);
+
+    // Complete Auction
+    // rell.test.tx()
+    //     .op(ft_auth_operation_for(bob_session_1.pub))
+    //     .op(complete_auction_for_land(_all_lands[0].id))
+    //     .sign(bob_session_1)
+    //     .run();
+   
+}

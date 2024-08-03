@@ -1,0 +1,214 @@
+
+/* Operations */
+
+// NFT Mint Land
+operation mint_land(
+    _id : text,
+    _description : text, 
+    _category : land_category,
+    _size : text,
+    _price : big_integer) {
+
+        // Auth
+        val account = auth.authenticate();
+
+        // Fixed Price for each land category validate
+        _mint_land_price_validate(_category, _price, _size);
+        
+
+       // Transfer Tokens to Dapp Account
+       Unsafe.transfer(account, dapp_meta.account, dapp_meta.asset, _price);
+
+        // Find User from account
+        val _user = user @ {account};
+
+        // Find Tx
+        val tx_rid = op_context.transaction.tx_rid.to_hex();
+        val land_id: integer = integer.from_hex(tx_rid.sub(0, 8));
+
+
+        // Mint Land
+        create land_nft(
+            id = _id,
+            owner = _user, 
+            name = "%s #%s".format(_category, land_id), 
+            description = _description, 
+            category = _category,
+            size = _size);
+
+}
+
+// List Land
+operation list_land_for_fixed_price(_id: text, _price: big_integer) {
+
+    // Auth
+    val account = auth.authenticate();
+    
+    // Find Land and Owner
+    val (land, owner) = land_nft @ { .id == _id } ($, .owner);
+
+    // Price should not be Zero
+    require(_price > 0, "Price Should be greater than Zero");
+    
+    // Validate Ownership of Land
+    require(owner.account == account, "User must be owner of the land");
+
+    // List Land for Sale
+    create listed_lands_for_fixed_price ( 
+        land_nft = land,
+        owner = owner, 
+        list_price = _price, 
+        type = list_type.FIXED_PRICE);
+}
+
+operation list_land_for_auction(_id: text, _min_price: big_integer, _end_time: integer) {
+
+   // Auth
+    val account = auth.authenticate();
+    
+    // Find Land and Owner
+    val (land, owner) = land_nft @ { .id == _id } ($, .owner);
+    
+    // Min Price should not be Zero
+    require(_min_price > 0, "Min Price Cannot be Zero");
+
+    // Validate Auction Time
+    require(_end_time > op_context.last_block_time, "Auction end time should be a future date" );
+
+    // Validate Ownership of Land
+    require(owner.account == account, "User must be owner of the land");
+
+    // List Land for Sale
+    create listed_lands_for_auction ( 
+        land_nft = land,
+        owner = owner, 
+        list_price = _min_price, 
+        type = list_type.AUCTION, 
+        highest_bidder = owner, 
+        end_time = _end_time); // Setting Highest Bidder to Owner as a default value
+}
+
+// Sale For Fixed Price
+operation create_land_sale_for_fixed_price(_id : text) {
+    // Auth
+    val account = auth.authenticate();
+
+    // Check whether land is already listed for sale in Auction
+    require(listed_lands_for_auction @ {
+        .land_nft.id == _id} (@sum 1) != 1, "Land is already listed in Auction");
+
+    // Find Land, Owner and Price
+    val (land, owner, price, sale_type) = listed_lands_for_fixed_price @ {
+        .land_nft.id == _id
+    } ( .land_nft , .owner, .list_price, .type );
+
+    // Owner and Buyer should not be same
+    require(owner != user @ {account}, "Owner and Buyer should not be same");
+
+    // Validate List Type
+    require(sale_type == list_type.FIXED_PRICE, "Sale of Auction item in Fixed Price is not allowed");
+
+    // Transfer Amount from Buyer to Owner
+    Unsafe.transfer(account, owner.account, dapp_meta.asset, price);
+
+    // Transfer Land ownership from Owner to Buyer
+    land.owner = user @ {.account == account};
+
+    // Delete Listing After Sale
+    delete listed_lands_for_fixed_price @ { .land_nft.id == _id };
+}
+
+// Bid For Auction
+operation bid_land_for_auction(_id : text, _bid_amount : big_integer) {
+   // Auth
+    val account = auth.authenticate();
+
+    // // Check if land is already listed for fixed price
+    require(listed_lands_for_fixed_price @ {
+        .land_nft.id == _id} (@sum 1) != 1, "Land is already listed for Fixed Price Sale");
+
+    // Find Land, Owner and Price
+    val (listed_land, land, price, sale_type, highest_bid, highest_bidder, time_limit, owner) = listed_lands_for_auction @ {
+        .land_nft.id == _id
+    } ( $, .land_nft , .list_price, .type , .highest_price, .highest_bidder, .end_time, .owner);
+
+    
+
+    // Owner and Buyer should not be same
+    require(owner != user @ {account}, "Owner and Bidder should not be same");
+
+    // Validate List Type
+    require(sale_type == list_type.AUCTION, "Bidding is possible only on Auction");
+
+    // Time Limit Check
+    require(op_context.last_block_time <= time_limit, "Auction for this land already ended" );
+
+    // Bid Amount Check
+    require(_bid_amount > price and _bid_amount > highest_bid, "Bid Amount Should be higher than list price and previous bid amount");
+
+    // Transfer Amount from Current Bidder to Land Dapp and Send Back tokens to Previous highest bidder
+    Unsafe.transfer(account, dapp_meta.account , dapp_meta.asset, price);
+
+    // Transfer Only if there is a highest bidder
+    if (highest_bidder != owner) {
+        Unsafe.transfer(dapp_meta.account, highest_bidder.account, dapp_meta.asset, highest_bid);
+    }
+    
+
+    // Update Highest Bidder and Amount
+    listed_land.highest_bidder = user @ {.account == account};
+    listed_land.highest_price = _bid_amount;
+}
+
+// Sale for Auction
+operation complete_auction_for_land(_id : text) {
+    // Auth
+    val account = auth.authenticate();
+
+    // Find Land
+    val (listed_land, land, time_limit, owner, highest_bidder, highest_price) = listed_lands_for_auction @ {
+        .land_nft.id == _id
+    } ( $, .land_nft , .end_time, .owner ,.highest_bidder, .highest_price);
+
+    // Time Limit Check
+    require(op_context.last_block_time > time_limit, "Auction for this land is still live" );
+
+    // Transfer Amount from Dapp to Seller
+    Unsafe.transfer(dapp_meta.account, owner.account, dapp_meta.asset, highest_price);
+
+    // Transfer Land ownership from Owner to Highest Bidder
+    land.owner = user @ {.account == highest_bidder.account};
+
+    // Delete Listing After Auction
+    delete listed_lands_for_auction @ { .land_nft.id == _id };
+}
+
+// Delete Listing
+operation cancel_listing_on_fixed_price(_id : text) {
+    // Auth
+    val account = auth.authenticate();
+
+    // Find Land
+    val owner = require(listed_lands_for_fixed_price @? {.land_nft.id == _id} (.owner), "Land Not found");
+
+    // Access Control
+    require(owner != user @ {account}, "Only owner can cancel listing");
+
+    // Delete Entry on auction
+    delete listed_lands_for_fixed_price @ {.land_nft.id == _id};
+}
+
+operation cancel_listing_on_auction(_id : text) {
+    // Auth
+    val account = auth.authenticate();
+
+    // Find Land
+    val owner = require(listed_lands_for_auction @? {.land_nft.id == _id} (.owner), "Land Not found");
+
+    // Access Control
+    require(owner != user @ {account}, "Only owner can cancel listing");
+
+    // Delete Entry on auction
+    delete listed_lands_for_auction @ {.land_nft.id == _id};
+}
+

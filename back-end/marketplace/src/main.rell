@@ -1,0 +1,7 @@
+module;
+
+import ^.marketplace.*;
+import ^.registration.*;
+
+query list_accounts() = account @* { } ( $.to_struct() );
+

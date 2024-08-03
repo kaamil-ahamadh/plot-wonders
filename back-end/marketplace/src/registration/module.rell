@@ -1,0 +1,20 @@
+module;
+
+import ^.marketplace.*;
+import lib.ft4.accounts.strategies.open;
+import lib.ft4.accounts.strategies. { register_account };
+
+operation register_user(_username : text) {
+    // Register Account
+    val _account = register_account();
+
+    // create User
+    val user = create user (
+        uid = _account.id,
+        username = _username,
+        account = _account
+    );
+
+    // SignUp Bonus
+    Unsafe.mint(_account, dapp_meta.asset, 5000);
+}

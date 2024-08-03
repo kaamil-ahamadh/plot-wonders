@@ -1,0 +1,39 @@
+
+// Enum
+enum land_category {
+    STANDARD,
+    SOLID,
+    SUPERIOR,
+    EPIC,
+    LEGENDARY
+}
+
+enum list_type {
+    FIXED_PRICE,
+    AUCTION
+}
+
+// Helper Functions
+function require_user(uid: byte_array) = require(user @? { uid }, "User with id %s does not exist".format(uid)); 
+function format_user(user) = "%s#%s".format(user.username, user.uid.to_hex().sub(0, 5));
+
+// Mint Land
+function _mint_land_price_validate(_category : land_category, _price : big_integer, size : text) {
+
+    if (_category == land_category.STANDARD) {
+            require(_price == 500 and size == "1x1", "STANDARD Land price is 500 PGEMS Token"); // We currently only supporting 1x1 size land
+        }
+        else if (_category == land_category.SOLID) {
+            require(_price == 1000 and size == "1x1", "SOLID Land price is 1000 PGEMS Token");
+        }
+        else if (_category == land_category.SUPERIOR) {
+            require(_price == 1500 and size == "1x1",  "SUPERIOR Land price is 1500 PGEMS Token");
+        }
+        else if (_category == land_category.EPIC) {
+            require(_price == 2000 and size == "1x1", "EPIC Land price is 2000 PGEMS Token");
+        }
+        else if (_category == land_category.LEGENDARY) {
+            require(_price == 2500 and size == "1x1", "LEGENDARY Land price is 2500 PGEMS Token");
+        }
+}
+

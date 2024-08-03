@@ -59,9 +59,9 @@ export const handleWalletConnect = (setSession: any) => {
     console.log("Initializing Session");
     // 1. Initialize Client
     const client = await createClient({
-      nodeUrlPool: "http://localhost:7740",
+      nodeUrlPool: "https://node0.projectnet.chromia.dev:7740",
       blockchainRid:
-        "E079C57628585DEF2719676A71CA79898E321B0523ECD768A601068732B8A295",
+        "4F0E3C23A886BA0D3E831A0162CC7FB50CAE748D77232C1449113E0EBC99E004",
     });
 
     // 2. Connect with MetaMask or Notify with toast"

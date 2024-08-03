@@ -1,4 +1,5 @@
 "use client";
+
 import { useQuery } from "@/app/hooks";
 import { LandNFTCard, StatCard } from "@/components";
 import { useSessionContext } from "@/components/ContextProvider";
@@ -63,13 +64,15 @@ const HomePage = () => {
     console.log(lands);
   }, [allLands]);
 
-  if (!window.ethereum) {
-    return (
-      <div>
-        Metamask Wallet Not Found <br /> Pls Download and Install it before
-        using this dapp..
-      </div>
-    );
+  if (typeof window !== "undefined") {
+    if (!window.ethereum) {
+      return (
+        <div>
+          Metamask Wallet Not Found <br /> Pls Download and Install it before
+          using this dapp..
+        </div>
+      );
+    }
   }
 
   if (!lands) {
